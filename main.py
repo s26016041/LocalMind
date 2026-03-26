@@ -2,11 +2,13 @@ import tkinter as tk
 from tkinter import scrolledtext
 from src.geminimind import gemini_mind
 from src.const import const
-
+from src.config import config
+from version import version
+import threading
 
 # 1. 建立主視窗
 root = tk.Tk()
-root.title("本地AI")
+root.title("本地AI v"+ version)
 root.geometry("400x600")
 my_font = ("Microsoft JhengHei", 12)
 
@@ -49,6 +51,7 @@ def send_ai_message(message:str):
 
 def clear_messages():
     const.AI_MESSAGES.clear()
+    const.AI_MESSAGES.append(const.SYSTEM)
     chat_display.config(state='normal') # 開啟編輯權限
     chat_display.delete(1.0, tk.END) # 清空顯示區
     chat_display.config(state='disabled') # 鎖定唯讀
@@ -92,12 +95,15 @@ def verify_api_key():
         return
     print("API key 驗證成功！")
     gemini_mind.clear_messages()
+    config.save_api(const.API_KEY)
 
 
 api_key_button = tk.Button(api_key_frame, text="設定API Key",command=verify_api_key )
 api_key_button.pack(side=tk.RIGHT)
 
-
+if config.get_api()!="":
+    api_key_input.insert(0,config.get_api())
+    const.API_KEY=config.get_api()
 
 # 5. 啟動程式
 root.mainloop()

@@ -1,3 +1,8 @@
+
+:: 需要再 windows 環境下執行 並且要填好 setx GITHUB_TOKEN "???"
+:: GITHUB_TOKEN 可以去你的 github 找
+
+
 @echo off
 setlocal enabledelayedexpansion
 chcp 65001 > nul
@@ -21,3 +26,5 @@ echo 封裝完成！正在檢查版本並準備上傳...
 python src/push.py
 
 pause
+
+

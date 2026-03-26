@@ -1,46 +1,51 @@
 import os
 import subprocess
-from ..version import version
-import sys
 
-# 匯入你的版本號 (假設 version.py 在 src 下)
-try:
-    from version import version as local_version
-except ImportError:
-    # 也可以用讀檔的方式
-    with open("src/version.py", "r", encoding="utf-8") as f:
-        exec(f.read())
-        local_version = version
+# 1. 動態讀取 version.py (假設它在專案根目錄)
+def get_local_version():
+    version_file = "version.py"  # 如果在根目錄
+    if not os.path.exists(version_file):
+        version_file = "src/version.py" # 如果在 src 裡
+        
+    variables = {}
+    with open(version_file, "r", encoding="utf-8") as f:
+        exec(f.read(), variables)
+    return variables.get("version", "0.0.0")
 
-def run_command(cmd):
-    return subprocess.run(cmd, shell=True, capture_output=True, text=True)
+# 2. 獲取本地版本
+local_version = get_local_version()
+print(f"本地版本: v{local_version}")
 
-def check_and_upload():
-    print(f"本地版本: v{local_version}")
+# 3. 獲取 GitHub 遠端版本
+def get_remote_version():
+    # 使用 gh 指令獲取最新 tag
+    result = subprocess.run("gh release view --json tagName --template \"{{.tagName}}\"", 
+                            shell=True, capture_output=True, text=True)
+    return result.stdout.strip().replace("v", "")
 
-    # 1. 獲取 GitHub 最新 Release Tag
-    result = run_command("gh release view --json tagName --template \"{{.tagName}}\"")
-    remote_version = result.stdout.strip().replace("v", "")
+remote_version = get_remote_version()
 
-    if local_version == remote_version:
-        print("版本一致，無需上傳。")
-        return
-
-    print(f"發現新版本！遠端: v{remote_version} -> 本地: v{local_version}")
-
-    # 2. 建立新 Release 並上傳 dist\main.exe
-    # --generate-notes 會自動根據 Commit 產生說明
+# 4. 比對並上傳
+if local_version != remote_version:
     tag = f"v{local_version}"
-    print(f"正在建立 Release {tag} 並上傳檔案...")
+    exe_path = "dist/main.exe"
     
-    upload_cmd = f'gh release create {tag} "dist/main.exe" --title "Release {tag}" --notes "自動封裝上傳"'
-    
-    upload_result = run_command(upload_cmd)
-    
-    if upload_result.returncode == 0:
-        print("✅ 上傳成功！")
+    # 檢查檔案是否存在，避免 gh 指令噴錯
+    if not os.path.exists(exe_path):
+        print(f"❌ 錯誤：找不到 {exe_path}，請確認 PyInstaller 封裝是否成功。")
     else:
-        print(f"❌ 上傳失敗: {upload_result.stderr}")
+        print(f"🚀 正在建立 GitHub Release {tag} 並上傳 {exe_path}...")
+        
+        # --generate-notes: 自動根據 git commit 產生說明
+        # --title: 設定 Release 的標題
+        upload_cmd = f'gh release create {tag} "{exe_path}" --title "Release {tag}" --generate-notes'
+        
+        result = subprocess.run(upload_cmd, shell=True, capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            print(f"✅ 成功發佈版本 {tag}！")
+        else:
+            print(f"❌ 上傳失敗，原因：\n{result.stderr}")
 
-if __name__ == "__main__":
-    check_and_upload()
+else:
+    print("版本一致，跳過上傳。")

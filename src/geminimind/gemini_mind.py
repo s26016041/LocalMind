@@ -12,7 +12,7 @@ def send_message(message: str)-> str:
                 api_key=const.API_KEY
             ) as client:
                 response = client.chat.send(
-                    model="google/gemini-3.1-flash-lite-preview",
+                    model="stepfun/step-3.5-flash:free",
                     messages=const.AI_MESSAGES
                 )
             ai_reply = response.choices[0].message.content

@@ -3,7 +3,6 @@
 > 本地 AI 自動化助手 — 用自然語言讓 AI 幫你執行電腦上的各種任務。
 
 ![Platform](https://img.shields.io/badge/Platform-Windows-blue?logo=windows)
-![Version](https://img.shields.io/badge/Version-1.0.0-green)
 
 ---
 

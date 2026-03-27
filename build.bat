@@ -3,22 +3,22 @@
 :: GITHUB_TOKEN 可以去你的 github 找
 
 
-@echo off
-setlocal enabledelayedexpansion
-chcp 65001 > nul
+@REM @echo off
+@REM setlocal enabledelayedexpansion
+@REM chcp 65001 > nul
 
-echo 正在清理舊的檔案...
-if exist build rd /s /q build
-if exist dist rd /s /q dist
+@REM echo 正在清理舊的檔案...
+@REM if exist build rd /s /q build
+@REM if exist dist rd /s /q dist
 
-echo 正在開始封裝 .exe...
-pyinstaller --noconsole --onefile --paths=src main.py
+@REM echo 正在開始封裝 .exe...
+@REM pyinstaller --noconsole --onefile --paths=src main.py
 
-if %ERRORLEVEL% neq 0 (
-    echo [錯誤] 封裝失敗，請檢查程式碼！
-    pause
-    exit /b
-)
+@REM if %ERRORLEVEL% neq 0 (
+@REM     echo [錯誤] 封裝失敗，請檢查程式碼！
+@REM     pause
+@REM     exit /b
+@REM )
 
 echo 封裝完成！正在檢查版本並準備上傳...
 

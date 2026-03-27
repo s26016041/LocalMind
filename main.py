@@ -88,15 +88,23 @@ api_key_input = tk.Entry(
     font=my_font
 )
 api_key_input.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+
+# 驗證結果的勾勾/叉叉標籤
+api_status_label = tk.Label(api_key_frame, text="", font=("Microsoft JhengHei", 14))
+api_status_label.pack(side=tk.RIGHT, padx=(5, 0))
+
 def verify_api_key():
     const.API_KEY=api_key_input.get()
+    api_status_label.config(text="⏳", fg="gray")
+    root.update_idletasks()
     if gemini_mind.API_KEY_ERROR==gemini_mind.send_message("嗨!"):
         print("API key 錯誤或官方API異常，請稍後再試！")
+        api_status_label.config(text="✘", fg="red")
         return
     print("API key 驗證成功！")
+    api_status_label.config(text="✔", fg="green")
     gemini_mind.clear_messages()
     config.save_api(const.API_KEY)
-
 
 api_key_button = tk.Button(api_key_frame, text="設定API Key",command=verify_api_key )
 api_key_button.pack(side=tk.RIGHT)
@@ -104,6 +112,7 @@ api_key_button.pack(side=tk.RIGHT)
 if config.get_api()!="":
     api_key_input.insert(0,config.get_api())
     const.API_KEY=config.get_api()
+    verify_api_key()
 
 # 5. 啟動程式
 root.mainloop()

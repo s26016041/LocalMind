@@ -29,17 +29,30 @@ def send_message():
     message = user_input.get() # 取得輸入框內容
     user_input.delete(0, tk.END) # 清空輸入框
     user_input.config(state='disabled') 
+    send_button.config(state='disabled')
     if message.strip(): # 確保不是空白
         chat_display.config(state='normal') # 開啟編輯權限
         chat_display.insert(tk.END, f"你: {message}\n") # 插入文字
         chat_display.yview(tk.END) # 自動捲動到底部
         chat_display.insert(tk.END, f"等待 AI 回復......\n") # 插入文字
-        root.update_idletasks()
-        aiMessage=gemini_mind.send_message(message) # 呼叫 gemini_mind 的 send_message 函式
-        chat_display.delete("end-2l", "end-1c") 
         chat_display.config(state='disabled') # 鎖定唯讀
-        send_ai_message(aiMessage)
-    user_input.config(state='normal') 
+        root.update_idletasks()
+        
+        def _send():
+            aiMessage = gemini_mind.send_message(message)
+            def _update_ui():
+                chat_display.config(state='normal')
+                chat_display.delete("end-2l", "end-1c") 
+                chat_display.config(state='disabled')
+                send_ai_message(aiMessage)
+                user_input.config(state='normal')
+                send_button.config(state='normal')
+            root.after(0, _update_ui)
+        
+        threading.Thread(target=_send, daemon=True).start()
+    else:
+        user_input.config(state='normal')
+        send_button.config(state='normal')
 
 
 def send_ai_message(message:str):
@@ -96,15 +109,27 @@ api_status_label.pack(side=tk.RIGHT, padx=(5, 0))
 def verify_api_key():
     const.API_KEY=api_key_input.get()
     api_status_label.config(text="⏳", fg="gray")
+    api_key_button.config(state='disabled')
     root.update_idletasks()
-    if gemini_mind.API_KEY_ERROR==gemini_mind.send_message("嗨!"):
-        print("API key 錯誤或官方API異常，請稍後再試！")
-        api_status_label.config(text="✘", fg="red")
-        return
-    print("API key 驗證成功！")
-    api_status_label.config(text="✔", fg="green")
-    gemini_mind.clear_messages()
-    config.save_api(const.API_KEY)
+    
+    def _verify():
+        gemini_mind.clear_messages()
+        result = gemini_mind.send_message("嗨!")
+        gemini_mind.clear_messages()
+        
+        def _update_ui():
+            if gemini_mind.API_KEY_ERROR == result:
+                print("API key 錯誤或官方API異常，請稍後再試！")
+                api_status_label.config(text="✘", fg="red")
+            else:
+                print("API key 驗證成功！")
+                api_status_label.config(text="✔", fg="green")
+                config.save_api(const.API_KEY)
+            api_key_button.config(state='normal')
+        
+        root.after(0, _update_ui)
+    
+    threading.Thread(target=_verify, daemon=True).start()
 
 api_key_button = tk.Button(api_key_frame, text="設定API Key",command=verify_api_key )
 api_key_button.pack(side=tk.RIGHT)
@@ -112,7 +137,7 @@ api_key_button.pack(side=tk.RIGHT)
 if config.get_api()!="":
     api_key_input.insert(0,config.get_api())
     const.API_KEY=config.get_api()
-    verify_api_key()
+    root.after(100, verify_api_key)
 
 # 5. 啟動程式
 root.mainloop()

@@ -2,3 +2,5 @@ dist
 build
 main.spec
 config.json
+__pycache__/
+*.pyc

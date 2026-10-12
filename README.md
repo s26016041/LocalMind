@@ -17,13 +17,13 @@
 
 ## 📥 下載與安裝
 
-1. 前往 [**Releases 頁面**](https://github.com/<your-username>/LocalMind/releases/latest) 下載最新版的 `main.exe`
+1. 前往 [**Releases 頁面**](https://github.com/s26016041/LocalMind/releases/latest) 下載最新版的 `main.exe`
 2. 將 `main.exe` 放到你想要的資料夾中
 3. 雙擊執行即可，**不需要安裝 Python 或任何其他東西**
 
 ---
 
-## � 取得 API Key
+## 🔑 取得 API Key
 
 本程式使用 OpenRouter API，你需要先申請一組免費的 API Key：
 
@@ -50,7 +50,8 @@
 ## ⚠️ 注意事項
 
 - 僅支援 **Windows** 系統
-- AI 會在你的電腦上執行命令，請留意 AI 的回覆內容
+- AI 會在你的電腦上執行命令，**每個命令執行前都會跳出視窗讓你確認**，看不懂的命令請按「否」
+- 一次對話最多執行 10 個命令，超過會先停下來，避免無限執行一直消耗 API 額度
 - API Key 儲存在程式同目錄下的 `config.json` 中，請妥善保管
 
 ---

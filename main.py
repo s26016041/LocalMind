@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, messagebox
 from src.geminimind import gemini_mind
 from src.const import const
 from src.config import config
@@ -39,7 +39,7 @@ def send_message():
         root.update_idletasks()
         
         def _send():
-            aiMessage = gemini_mind.send_message(message)
+            aiMessage = gemini_mind.send_message(message, confirm_command)
             def _update_ui():
                 chat_display.config(state='normal')
                 chat_display.delete("end-2l", "end-1c") 
@@ -53,6 +53,25 @@ def send_message():
     else:
         user_input.config(state='normal')
         send_button.config(state='normal')
+
+
+def confirm_command(command: str) -> bool:
+    # 這個函式在背景執行緒被呼叫，視窗只能在主執行緒開，所以切回主執行緒問完再回來
+    result = {"ok": False}
+    done = threading.Event()
+
+    def _ask():
+        result["ok"] = messagebox.askyesno(
+            "確認執行命令",
+            f"AI 要在你的電腦上執行以下命令：\n\n{command}\n\n允許執行嗎？",
+            icon="warning",
+            default="no"
+        )
+        done.set()
+
+    root.after(0, _ask)
+    done.wait()
+    return result["ok"]
 
 
 def send_ai_message(message:str):
@@ -113,12 +132,10 @@ def verify_api_key():
     root.update_idletasks()
     
     def _verify():
-        gemini_mind.clear_messages()
-        result = gemini_mind.send_message("嗨!")
-        gemini_mind.clear_messages()
-        
+        ok = gemini_mind.check_api_key()
+
         def _update_ui():
-            if gemini_mind.API_KEY_ERROR == result:
+            if not ok:
                 print("API key 錯誤或官方API異常，請稍後再試！")
                 api_status_label.config(text="✘", fg="red")
             else:
